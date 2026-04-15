@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Наш город — Помощник с меню</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 95vh;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #2c3e76 0%, #1a2748 100%);
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.3rem;
+        }
+
+        .chat-header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Меню категорий */
+        .menu-panel {
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            max-height: 45%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-header {
+            padding: 10px 16px;
+            background: #f8f9fa;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #667eea;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .back-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .menu-items {
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+        }
+
+        .menu-btn {
+            background: #f0f2f5;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #333;
+            flex: 0 0 auto;
+        }
+
+        .menu-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .menu-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .chat-input-area {
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px 14px;
+            background: white;
+            border-radius: 18px;
+            width: fit-content;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+
+        .chat-messages::-webkit-scrollbar, .menu-items::-webkit-scrollbar {
+            width: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>🏙️ Наш город — Помощник</h1>
+        <p>Выберите тему или напишите проблему</p>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+            <div class="message-content">
+                👋 Здравствуйте! Я помогу определить категорию для портала «Наш город».<br><br>
+                📋 <strong>Выберите раздел в меню ниже</strong> или напишите проблему текстом.
+            </div>
+        </div>
+    </div>
+
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-header">
+            <span id="menuTitle">📁 Разделы</span>
+            <button class="back-btn" id="backBtn" style="display:none;" onclick="goBack()">← Назад</button>
+        </div>
+        <div class="menu-items" id="menuItems"></div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Опишите проблему..." onkeypress="handleKeyPress(event)">
+        <button class="send-btn" onclick="sendMessage()">Отправить</button>
+    </div>
+</div>
+
+<script>
+    // ========== ПОЛНАЯ СТРУКТУРА ТЕМ (60+ проблем) ==========
+    const fullStructure = {
+        "🏠 Мой двор": {
+            "🧹 Уборка": [
+                "Неубранная дворовая территория",
+                "Захамление территории",
+                "Отсутствие урн в положенных местах во дворе",
+                "Реклама наркотических средств",
+                "Снег и гололед во дворе",
+                "Избыточное/неравномерное применение реагентов во дворе"
+            ],
+            "🗑️ Контейнерные площадки": [
+                "Неубранная контейнерная площадка/переполнение контейнеров",
+                "Повреждение контейнерной площадки/контейнеров",
+                "Размещение мусорных контейнеров с нарушением норм"
+            ],
+            "🏗️ Дворовая инфраструктура": [
+                "Наличие опасно выступающих элементов во дворе",
+                "Незаконная установка некапитальных объектов во дворе",
+                "Незаконное размещение ограждений на парковочных местах",
+                "Неисправность/некачественное содержание освещения во дворе",
+                "Некачественное содержание детской площадки",
+                "Незаконное содержание дорожных знаков",
+                "Незаконное содержание скамеек/урн у магазинов",
+                "Незаконное содержание площадки для выгула собак",
+                "Незаконное содержание спортивной площадки"
+            ],
+            "🌿 Благоустройство": [
+                "Невосстановленное благоустройство после демонтажа",
+                "Незавершенный демонтаж некапитальных объектов",
+                "Ненадлежащее выполнение работ по благоустройству",
+                "Несвоевременное восстановление благоустройства после разрытий"
+            ]
+        },
+        "🛣️ Проезды и тротуары": {
+            "🕳️ Дорожное покрытие": [
+                "Некачественная укладка плитки",
+                "Повреждение бордюров",
+                "Повреждение дорожного покрытия (ямы, выбоины)",
+                "Повреждение искусственной дорожной неровности",
+                "Повреждение люка/незакрытый люк",
+                "Подтопление территории",
+                "Реклама на дорожном покрытии"
+            ],
+            "🚗 Парковка и транспорт": [
+                "Брошенное транспортное средство"
+            ]
+        },
+        "🐕 Животные": {
+            "🐾 Бездомные животные": ["Бездомные животные"],
+            "⚠️ Животные в опасности": ["Животное в опасности"],
+            "🐕 Выгул собак": ["Некачественное содержание площадки для выгула собак"]
+        },
+        "⚽ Спорт и отдых": {
+            "🏀 Спортплощадки": ["Некачественное содержание спортивной площадки"],
+            "⛸️ Катки": ["Некачественное содержание катка"],
+            "🏖️ Детские площадки": ["Отсутствие песка в песочнице"]
+        },
+        "🚧 Ограждения": {
+            "🪜 Лестницы": ["Повреждение лестницы"],
+            "🚧 Заборы": ["Повреждение ограждения/забора"]
+        },
+        "🌳 Зеленые насаждения": {
+            "🌿 Уход": ["Ненадлежащий уход за зелеными насаждениями"],
+            "❄️ Уборка снега": ["Складирование загрязненного снега на газонах"]
+        },
+        "💡 Освещение": {
+            "💡 Уличное освещение": [
+                "Неисправность освещения",
+                "Отсутствие освещения на улице",
+                "Некачественное содержание фонарей"
+            ]
+        },
+        "🗑️ Вывоз мусора": {
+            "🚛 Вывоз": [
+                "Нерегулярный вывоз мусора",
+                "Переполнение контейнеров",
+                "Отсутствие графика вывоза"
+            ]
+        },
+        "🔊 Шум и покой": {
+            "🔇 Нарушение тишины": [
+                "Шумные работы ночью",
+                "Громкая музыка во дворе",
+                "Строительный шум в запрещенное время"
+            ]
+        },
+        "🅿️ Парковки": {
+            "🚫 Незаконная парковка": [
+                "Парковка на газоне",
+                "Парковка на тротуаре",
+                "Блокирование проезда"
+            ]
+        }
+    };
+
+    // Плоский список для текстового поиска
+    const flatProblems = [];
+    for (const [section, categories] of Object.entries(fullStructure)) {
+        for (const [category, problems] of Object.entries(categories)) {
+            for (const problem of problems) {
+                flatProblems.push({
+                    section: section,
+                    category: category,
+                    problem: problem,
+                    keywords: problem.toLowerCase().split(/[\s,]+/).filter(w => w.length > 3)
+                });
+            }
+        }
+    }
+
+    // Состояние меню
+    let currentLevel = 'main'; // main, section
+    let currentSection = null;
+    let currentCategory = null;
+
+    // DOM элементы
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const menuItems = document.getElementById('menuItems');
+    const menuTitle = document.getElementById('menuTitle');
+    const backBtn = document.getElementById('backBtn');
+
+    // Добавить сообщение
+    function addMessage(text, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+        messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Показать результат
+    function showResult(section, category, problem) {
+        const response = `🔍 <strong>Найдено обращение:</strong><br><br>` +
+            `📌 <strong>Категория:</strong> ${section}<br>` +
+            `📂 <strong>Подкатегория:</strong> ${category}<br>` +
+            `✅ <strong>Точная тема:</strong> ${problem}<br><br>` +
+            `🔗 Перейдите на портал «Наш город»:<br>` +
+            `https://gorod.mos.ru/themes<br><br>` +
+            `И выберите эту тему для создания обращения.`;
+        addMessage(response, false);
+    }
+
+    // Отрисовка главного меню (разделы)
+    function renderMainMenu() {
+        currentLevel = 'main';
+        menuTitle.innerText = '📁 Разделы';
+        backBtn.style.display = 'none';
+        
+        menuItems.innerHTML = '';
+        for (const section of Object.keys(fullStructure)) {
+            const btn = document.createElement('button');
+            btn.className = 'menu-btn';
+            btn.innerText = section;
+            btn.onclick = () => selectSection(section);
+            menuItems.appendChild(btn);
+        }
+    }
+
+    // Выбор раздела -> показываем категории
+    function selectSection(section) {
+        currentLevel = 'category';
+        currentSection = section;
+        menuTitle.innerText = `📂 ${section}`;
+        backBtn.style.display = 'inline-block';
+        
+        menuItems.innerHTML = '';
+        const categories = fullStructure[section];
+        for (const category of Object.keys(categories)) {
+            const btn = document.createElement('button');
+            btn.className = 'menu-btn';
+            btn.innerText = category;
+            btn.onclick = () => selectCategory(section, category);
+            menuItems.appendChild(btn);
+        }
+    }
+
+    // Выбор категории -> показываем конкретные проблемы
+    function selectCategory(section, category) {
+        currentLevel = 'problem';
+        currentSection = section;
+        currentCategory = category;
+        menuTitle.innerText = `📋 ${category}`;
+        backBtn.style.display = 'inline-block';
+        
+        menuItems.innerHTML = '';
+        const problems = fullStructure[section][category];
+        for (const problem of problems) {
+            const btn = document.createElement('button');
+            btn.className = 'menu-btn';
+            btn.innerText = `• ${problem}`;
+            btn.onclick = () => {
+                showResult(section, category, problem);
+                renderMainMenu();
+            };
+            menuItems.appendChild(btn);
+        }
+    }
+
+    // Назад
+    function goBack() {
+        if (currentLevel === 'category') {
+            renderMainMenu();
+        } else if (currentLevel === 'problem') {
+            selectSection(currentSection);
+        }
+    }
+
+    // Поиск по тексту
+    function findProblemByText(text) {
+        const lowerText = text.toLowerCase();
+        let bestMatch = null;
+        let maxScore = 0;
+        
+        for (const item of flatProblems) {
+            let score = 0;
+            for (const kw of item.keywords) {
+                if (lowerText.includes(kw)) score++;
+            }
+            if (score > maxScore && score > 0) {
+                maxScore = score;
+                bestMatch = item;
+            }
+        }
+        return bestMatch;
+    }
+
+    // Текстовый поиск с индикацией
+    async function botTextResponse(userMessage) {
+        // Показать индикатор печати
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) indicator.remove();
+        
+        const match = findProblemByText(userMessage);
+        
+        if (match) {
+            showResult(match.section, match.category, match.problem);
+        } else {
+            addMessage("😕 Не удалось определить тему. Пожалуйста, выберите раздел в меню ниже.", false);
+        }
+    }
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+        
+        addMessage(message, true);
+        chatInput.value = '';
+        await botTextResponse(message);
+    }
+    
+    function sendSuggestion(text) {
+        chatInput.value = text;
+        sendMessage();
+    }
+    
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') sendMessage();
+    }
+    
+    // Инициализация
+    renderMainMenu();
+    chatInput.focus();
+</script>
+</body>
+</html>
