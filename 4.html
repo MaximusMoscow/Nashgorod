@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Наш город — Подача заявок по двору</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 95vh;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #2c3e76 0%, #1a2748 100%);
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.3rem;
+        }
+
+        .chat-header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .problem-card {
+            background: #f0f2f5;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid #667eea;
+        }
+
+        .problem-card:hover {
+            background: #e0e4e8;
+            transform: translateX(5px);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .status-new { background: #ff9800; color: white; }
+        .status-progress { background: #2196f3; color: white; }
+        .status-done { background: #4caf50; color: white; }
+
+        .menu-panel {
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            max-height: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-header {
+            padding: 10px 16px;
+            background: #f8f9fa;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #667eea;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn, .main-menu-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .back-btn:hover, .main-menu-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .menu-items {
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+        }
+
+        .menu-btn {
+            background: #f0f2f5;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #333;
+            flex: 0 0 auto;
+        }
+
+        .menu-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .chat-input-area {
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn, .report-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .report-btn {
+            width: 100%;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+
+        .subcategory-icon {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>🏙️ Наш город — Подача заявок</h1>
+        <p>📝 Оставляйте заявки по проблемам во дворе и отслеживайте их статус</p>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+            <div class="message-content">
+                👋 <strong>Добро пожаловать в систему подачи заявок!</strong><br><br>
+                📋 Здесь вы можете:<br>
+                • Просматривать все свои заявки<br>
+                • Отслеживать их статус<br>
+                • Создавать новые обращения<br><br>
+                🟢 <strong>Ваши активные заявки будут отображаться ниже</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-header">
+            <span id="menuTitle">📋 Мои заявки</span>
+            <button class="main-menu-btn" id="mainMenuBtn" onclick="showMainMenu()">➕ Новая заявка</button>
+        </div>
+        <div class="menu-items" id="menuItems"></div>
+    </div>
+</div>
+
+<script>
+    // ========== СТРУКТУРА ТЕМ (обновлена по вашему скриншоту) ==========
+    const categories = {
+        "🧹 Уборка и чистота": {
+            icon: "🧹",
+            subcategories: [
+                "Неубранная дворовая территория",
+                "Захламление территории",
+                "Отсутствие урн в положенных местах во дворе",
+                "Реклама наркотических средств",
+                "Снег и гололед во дворе",
+                "Избыточное/неравномерное применение реагентов во дворе"
+            ]
+        },
+        "🗑️ Контейнерные площадки": {
+            icon: "🗑️",
+            subcategories: [
+                "Неубранная контейнерная площадка/переполнение контейнеров",
+                "Повреждение контейнерной площадки/контейнеров",
+                "Размещение мусорных контейнеров с нарушением норм"
+            ]
+        },
+        "🚗 Брошенный транспорт": {
+            icon: "🚗",
+            subcategories: [
+                "Брошенное транспортное средство во дворе"
+            ]
+        },
+        "🛣️ Дорожное покрытие во дворе": {
+            icon: "🛣️",
+            subcategories: [
+                "Некачественная укладка плитки во дворе",
+                "Повреждение бордюров во дворе",
+                "Повреждение дорожного покрытия во дворе (ямы, выбоины, провалы)",
+                "Повреждение искусственной дорожной неровности во дворе",
+                "Повреждение люка/незакрытый люк во дворе",
+                "Подтопление дворовой территории",
+                "Реклама на дорожном покрытии во дворе"
+            ]
+        },
+        "🏗️ Инфраструктура и ограждения": {
+            icon: "🏗️",
+            subcategories: [
+                "Незаконная установка некапитальных объектов во дворе",
+                "Незаконное размещение ограждений на парковочных местах во дворе",
+                "Неисправность/некачественное содержание элементов освещения во дворе",
+                "Некачественное содержание дорожных знаков во дворе",
+                "Некачественное содержание МАФ во дворе (скамейки, урны и др.)",
+                "Повреждение лестницы во дворе",
+                "Повреждение ограждения/забора во дворе"
+            ]
+        },
+        "🎾 Спорт и детские площадки": {
+            icon: "🎾",
+            subcategories: [
+                "Некачественное содержание детской площадки во дворе",
+                "Отсутствие песка в песочнице во дворе",
+                "Некачественное содержание спортивной площадки во дворе",
+                "Некачественное содержание площадки для выгула собак во дворе"
+            ]
+        },
+        "🌳 Зеленые насаждения": {
+            icon: "🌳",
+            subcategories: [
+                "Ненадлежащий уход за зелеными насаждениями во дворе"
+            ]
+        }
+    };
+
+    // Хранилище заявок
+    let applications = [];
+
+    // Загрузка из localStorage
+    function loadApplications() {
+        const saved = localStorage.getItem('yard_applications');
+        if (saved) {
+            applications = JSON.parse(saved);
+        }
+    }
+
+    // Сохранение в localStorage
+    function saveApplications() {
+        localStorage.setItem('yard_applications', JSON.stringify(applications));
+    }
+
+    // Генерация ID
+    function generateId() {
+        return Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+    }
+
+    // Состояние создания заявки
+    let creationState = {
+        step: null, // 'category', 'subcategory', 'description'
+        selectedCategory: null,
+        selectedSubcategory: null
+    };
+
+    const chatMessages = document.getElementById('chatMessages');
+    const menuItems = document.getElementById('menuItems');
+    const menuTitle = document.getElementById('menuTitle');
+
+    function addMessage(text, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+        messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderApplicationsList() {
+        menuTitle.innerText = '📋 Мои заявки';
+        menuItems.innerHTML = '';
+        
+        if (applications.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.style.width = '100%';
+            emptyDiv.style.textAlign = 'center';
+            emptyDiv.style.padding = '20px';
+            emptyDiv.style.color = '#999';
+            emptyDiv.innerText = '📭 У вас пока нет заявок\nНажмите "➕ Новая заявка" чтобы создать';
+            menuItems.appendChild(emptyDiv);
+            return;
+        }
+        
+        // Сортируем по дате (новые сверху)
+        const sorted = [...applications].reverse();
+        
+        for (const app of sorted) {
+            const card = document.createElement('div');
+            card.className = 'problem-card';
+            
+            let statusClass = '';
+            let statusText = '';
+            if (app.status === 'new') {
+                statusClass = 'status-new';
+                statusText = '🟡 Новая';
+            } else if (app.status === 'progress') {
+                statusClass = 'status-progress';
+                statusText = '🔵 В работе';
+            } else {
+                statusClass = 'status-done';
+                statusText = '🟢 Выполнена';
+            }
+            
+            const date = new Date(app.createdAt);
+            const dateStr = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+            
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong>📌 ${app.subcategory}</strong>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
+                    📝 ${app.description.substring(0, 60)}${app.description.length > 60 ? '...' : ''}
+                </div>
+                <div style="font-size: 0.7rem; color: #999; margin-top: 6px;">
+                    🕐 ${dateStr} • №${app.id.slice(-6)}
+                </div>
+            `;
+            
+            card.onclick = () => showApplicationDetails(app);
+            menuItems.appendChild(card);
+        }
+    }
+
+    function showApplicationDetails(app) {
+        let statusText = '';
+        if (app.status === 'new') statusText = '🟡 Новая (ожидает рассмотрения)';
+        else if (app.status === 'progress') statusText = '🔵 В работе (принята исполнителем)';
+        else statusText = '🟢 Выполнена (проблема устранена)';
+        
+        const date = new Date(app.createdAt);
+        const dateStr = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        
+        addMessage(`
+            <strong>📋 Детали заявки №${app.id.slice(-6)}</strong><br><br>
+            📌 <strong>Категория:</strong> ${app.category}<br>
+            🎯 <strong>Тема:</strong> ${app.subcategory}<br>
+            📝 <strong>Описание:</strong> ${app.description}<br>
+            🕐 <strong>Создана:</strong> ${dateStr}<br>
+            ${app.resolution ? `✅ <strong>Решение:</strong> ${app.resolution}<br>` : ''}
+            <br>
+            <strong>Статус:</strong> ${statusText}
+        `, false);
+    }
+
+    function showMainMenu() {
+        creationState = { step: 'category', selectedCategory: null, selectedSubcategory: null };
+        renderCategoryMenu();
+    }
+
+    function renderCategoryMenu() {
+        menuTitle.innerText = '📁 Выберите категорию';
+        menuItems.innerHTML = '';
+        
+        for (const [catName, catData] of Object.entries(categories)) {
+            const btn = document.createElement('button');
+            btn.className = 'menu-btn';
+            btn.innerHTML = `${catData.icon} ${catName}`;
+            btn.onclick = () => selectCategory(catName);
+            menuItems.appendChild(btn);
+        }
+        
+        // Кнопка отмены
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'menu-btn';
+        cancelBtn.style.background = '#ffebee';
+        cancelBtn.style.color = '#c62828';
+        cancelBtn.innerText = '❌ Отмена';
+        cancelBtn.onclick = () => {
+            creationState = { step: null, selectedCategory: null, selectedSubcategory: null };
+            renderApplicationsList();
+        };
+        menuItems.appendChild(cancelBtn);
+        
+        addMessage('📁 Пожалуйста, выберите категорию проблемы:', false);
+    }
+
+    function selectCategory(categoryName) {
+        creationState.selectedCategory = categoryName;
+        creationState.step = 'subcategory';
+        renderSubcategoryMenu(categoryName);
+    }
+
+    function renderSubcategoryMenu(categoryName) {
+        menuTitle.innerText = `📂 ${categories[categoryName].icon} ${categoryName}`;
+        menuItems.innerHTML = '';
+        
+        const subcats = categories[categoryName].subcategories;
+        for (const subcat of subcats) {
+            const btn = document.createElement('button');
+            btn.className = 'menu-btn';
+            btn.innerHTML = `• ${subcat}`;
+            btn.onclick = () => selectSubcategory(subcat);
+            menuItems.appendChild(btn);
+        }
+        
+        // Кнопка назад
+        const backBtn = document.createElement('button');
+        backBtn.className = 'menu-btn';
+        backBtn.style.background = '#e0e0e0';
+        backBtn.innerText = '← Назад к категориям';
+        backBtn.onclick = () => renderCategoryMenu();
+        menuItems.appendChild(backBtn);
+        
+        addMessage(`📂 Вы выбрали категорию: ${categories[categoryName].icon} ${categoryName}\n\nТеперь выберите конкретную тему:`, false);
+    }
+
+    function selectSubcategory(subcategory) {
+        creationState.selectedSubcategory = subcategory;
+        creationState.step = 'description';
+        renderDescriptionInput();
+    }
+
+    function renderDescriptionInput() {
+        menuTitle.innerText = '✍️ Опишите проблему';
+        menuItems.innerHTML = '';
+        
+        const descDiv = document.createElement('div');
+        descDiv.style.width = '100%';
+        descDiv.style.padding = '10px';
+        
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = 'Опишите подробно, что произошло, где именно (адрес, номер дома, подъезда)...';
+        textarea.style.width = '100%';
+        textarea.style.height = '100px';
+        textarea.style.padding = '10px';
+        textarea.style.borderRadius = '12px';
+        textarea.style.border = '1px solid #ddd';
+        textarea.style.fontFamily = 'inherit';
+        textarea.style.fontSize = '0.9rem';
+        textarea.style.resize = 'vertical';
+        
+        const sendDescBtn = document.createElement('button');
+        sendDescBtn.className = 'menu-btn';
+        sendDescBtn.style.width = '100%';
+        sendDescBtn.style.marginTop = '10px';
+        sendDescBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+        sendDescBtn.style.color = 'white';
+        sendDescBtn.innerText = '📤 Отправить заявку';
+        sendDescBtn.onclick = () => {
+            const description = textarea.value.trim();
+            if (!description) {
+                addMessage('⚠️ Пожалуйста, напишите описание проблемы.', false);
+                return;
+            }
+            submitApplication(description);
+        };
+        
+        const cancelDescBtn = document.createElement('button');
+        cancelDescBtn.className = 'menu-btn';
+        cancelDescBtn.style.width = '100%';
+        cancelDescBtn.style.marginTop = '8px';
+        cancelDescBtn.innerText = '← Вернуться к выбору темы';
+        cancelDescBtn.onclick = () => renderSubcategoryMenu(creationState.selectedCategory);
+        
+        descDiv.appendChild(textarea);
+        descDiv.appendChild(sendDescBtn);
+        descDiv.appendChild(cancelDescBtn);
+        menuItems.appendChild(descDiv);
+        
+        addMessage(`✍️ Вы выбрали тему: «${creationState.selectedSubcategory}»\n\nПожалуйста, подробно опишите проблему (укажите адрес, что именно случилось):`, false);
+        textarea.focus();
+    }
+
+    function submitApplication(description) {
+        const newApp = {
+            id: generateId(),
+            category: creationState.selectedCategory,
+            subcategory: creationState.selectedSubcategory,
+            description: description,
+            status: 'new',
+            createdAt: Date.now(),
+            resolution: null
+        };
+        
+        applications.push(newApp);
+        saveApplications();
+        
+        addMessage(`
+            ✅ <strong>Заявка успешно отправлена!</strong><br><br>
+            📌 <strong>Тема:</strong> ${newApp.subcategory}<br>
+            📝 <strong>Описание:</strong> ${description}<br>
+            🆔 <strong>Номер заявки:</strong> ${newApp.id.slice(-6)}<br><br>
+            🟡 Статус: <strong>Новая</strong> (ожидает рассмотрения)<br><br>
+            Вы можете отслеживать статус заявки в списке ниже.
+        `, false);
+        
+        // Сброс состояния создания
+        creationState = { step: null, selectedCategory: null, selectedSubcategory: null };
+        
+        // Показываем обновлённый список заявок
+        renderApplicationsList();
+    }
+
+    // Инициализация
+    loadApplications();
+    renderApplicationsList();
+</script>
+</body>
+</html>
